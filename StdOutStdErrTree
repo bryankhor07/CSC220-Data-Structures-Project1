@@ -1,0 +1,90 @@
+/*
+ * **********************************************
+ * San Francisco State University
+ * CSC 220 -  Data Structures
+ * File Name: StdOutStdErrTree.java
+ * Author: Duc Ta
+ * Author: Bryan Khor
+ * **********************************************
+ */
+
+
+package CSC220ASMT2;
+
+import java.io.*;
+
+public class StdOutStdErrTree extends OutputStream {
+
+    //
+    // Instance Data Fields
+    //
+    private String stdOutFilePath;
+    private String stdOutErrPath;
+    private OutputStream[] streamsToConsoleToFile;
+
+    //
+    // Constructors
+    //
+    public StdOutStdErrTree() {
+        this.stdOutFilePath = Config.getDefaultStdOutFilePath();
+        this.stdOutErrPath = Config.getDefaultStdErrFilePath();
+    }
+
+    public StdOutStdErrTree(PrintStream printStream, FileOutputStream fileOutputStream) {
+        this.streamsToConsoleToFile = new OutputStream[2];
+        streamsToConsoleToFile[0] = printStream;
+        streamsToConsoleToFile[1] = fileOutputStream;
+    }
+
+    public StdOutStdErrTree(String stdOutFilePath, String stdErrFilePath) {
+        this.stdOutFilePath = stdOutFilePath;
+        this.stdOutErrPath = stdErrFilePath;
+    }
+
+    //
+    // Instance Methods
+    //
+    public void startLog() {
+        try {
+            FileOutputStream stdOutFile = new FileOutputStream(new File(this.stdOutFilePath));
+            FileOutputStream stdErrFile = new FileOutputStream(new File(this.stdOutErrPath));
+
+            StdOutStdErrTree allStdOut = new StdOutStdErrTree(System.out, stdOutFile);
+            StdOutStdErrTree allStdErr = new StdOutStdErrTree(System.err, stdErrFile);
+
+            PrintStream stdOut = new PrintStream(allStdOut);
+            PrintStream stdErr = new PrintStream(allStdErr);
+
+            System.setOut(stdOut);
+            System.setErr(stdErr);
+
+        } catch (FileNotFoundException exception) {
+            System.out.println(exception.getMessage());
+        }
+    }
+
+    public static void stopLog() {
+        //
+        // Add code which our own implementation needs
+        //
+    }
+
+    //
+    // Override
+    //
+    @Override
+    public void write(int b) throws IOException {
+        for (OutputStream out : this.streamsToConsoleToFile) {
+            out.write(b);
+            out.flush();
+        }
+    }
+
+    public Object getStdErrFilePath() {
+        return "./src/assignment02PartB/log/StandardErr.log";
+    }
+
+    public Object getStdOutFilePath() {
+        return "./src/assignment02PartB/log/StandardOut.log";
+    }
+}
